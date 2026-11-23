@@ -1,25 +1,27 @@
 """
-NaviBay v3 Python Training Pipeline (scikit-learn + SciPy + NumPy)
+NaviBay v3 Pure-Python Training Pipeline (PyThaiNLP + scikit-learn + SciPy + NumPy)
 
-Trains the Hybrid Ordinal Ridge-Gaussian + Complement Naive Bayes model on
-whole-song Thai lyrics features and exports:
-  - dist/model.js   (browser-ready model consumed directly by dist/engine.js)
-  - metrics.json    (artist-group holdout evaluation report)
+Reads songs.csv directly in Python, extracts Thai phonetic/rhyme/structural features
+via phonetics.py, trains the Hybrid Ordinal Ridge-Gaussian + Complement Naive Bayes
+model with 5-fold Artist-Group CV, and exports:
+  - dist/syllables.js (dictionary for the web UI)
+  - dist/model.js     (browser-ready model consumed directly by dist/engine.js)
+  - metrics.json      (artist-group holdout evaluation report)
 
 Usage:
-  python train.py path/to/songs.csv
+  python train.py data/songs.csv
   # or with uv:
-  uv run --with-requirements requirements.txt python train.py path/to/songs.csv
+  uv run --with-requirements requirements.txt python train.py data/songs.csv
 """
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import json
 import math
-import subprocess
+import re
 import sys
-import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -31,6 +33,10 @@ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precisio
 from sklearn.model_selection import GroupKFold
 from sklearn.naive_bayes import ComplementNB
 from sklearn.preprocessing import StandardScaler
+
+import phonetics as P
+
+csv.field_size_limit(min(sys.maxsize, 2**31 - 1))
 
 CUTS = [10_000, 100_000, 500_000, 1_000_000, 5_000_000, 10_000_000]
 CUTS_LOG = [math.log10(c) for c in CUTS]
@@ -55,6 +61,8 @@ CNB_PRIOR_POW = 0.6
 CNB_TEMP = 0.35
 BLEND_RIDGE = 0.70
 TAU = 0.20
+
+RE_WS = re.compile(r"\s")
 
 
 def q4(v: float) -> float:
@@ -89,7 +97,7 @@ def build_doc_counters(song: dict, include_rich: bool = True) -> dict[str, Count
     return {"w:": w_cnt, "b:": b_cnt, "c:": c_cnt, "r:": r_cnt, "s:": s_cnt}
 
 
-def fit_tfidf(doc_counters: list[dict[str, Counter]], include_rich: bool = True):
+def fit_tfidf(doc_counters: list[dict[str, Counter]]):
     n_docs = len(doc_counters)
     df: Counter = Counter()
     for d in doc_counters:
@@ -154,9 +162,6 @@ def ridge_cdf_probs(preds: np.ndarray, sig: float) -> np.ndarray:
 
 
 def cnb_probs(cnb: ComplementNB, X: sparse.csr_matrix, priors: np.ndarray) -> np.ndarray:
-    # In scikit-learn ComplementNB, feature_log_prob_ stores +log(complement_prob) with a minus sign
-    # applied during prediction: _joint_log_likelihood = X @ (-feature_log_prob_.T) -> actually
-    # feature_log_prob_ is positive (-log(p_complement)), so higher dot product = more likely class.
     cnb_w = cnb.feature_log_prob_
     cnb_b = CNB_PRIOR_POW * np.log(priors)
     scores = (X @ cnb_w.T + cnb_b) * CNB_TEMP
@@ -183,7 +188,7 @@ def fit_and_predict_hybrid(
     tr_counters = [build_doc_counters(s, include_rich=True) for s in train_songs]
     ev_counters = [build_doc_counters(s, include_rich=True) for s in eval_songs]
 
-    vocab, vocab_map, idf = fit_tfidf(tr_counters, include_rich=True)
+    vocab, vocab_map, idf = fit_tfidf(tr_counters)
     X_tr = transform_tfidf(tr_counters, vocab_map, idf)
     X_ev = transform_tfidf(ev_counters, vocab_map, idf)
 
@@ -227,36 +232,57 @@ def fit_and_predict_hybrid(
     return probs, artifacts
 
 
+def load_and_analyze_csv(csv_path: Path, root: Path) -> tuple[int, list[dict]]:
+    dictionary = P.load_default_dictionary(root)
+    (root / "dist/syllables.js").write_text(
+        "globalThis.NAVIBAY_SYLLABLES=" + json.dumps(dictionary, ensure_ascii=False, separators=(",", ":")) + ";",
+        encoding="utf-8",
+    )
+
+    songs: list[dict] = []
+    seen: set[str] = set()
+    source_rows = 0
+
+    with csv_path.open("r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            source_rows += 1
+            lyrics = r.get("lyrics") or ""
+            views_str = (r.get("views") or "").strip()
+            key = RE_WS.sub("", lyrics)
+            if len(key) < 30 or key in seen or not views_str.isdigit():
+                continue
+            seen.add(key)
+            views = int(views_str)
+            group = (r.get("artist_group") or r.get("artist") or r.get("title") or "").strip().lower()
+            analysis = P.analyze(lyrics)
+            rhymes = [feat for feat in analysis["features"] if feat.startswith("r:")]
+            struct = [feat for feat in analysis["features"] if not feat.startswith("w:") and not feat.startswith("r:")]
+            dense = P.extract_dense_features(lyrics, analysis)
+            songs.append({
+                "group": group,
+                "views": views,
+                "label": views_to_band(views),
+                "tokens": analysis["tokens"],
+                "rhymes": rhymes,
+                "struct": struct,
+                "dense": dense,
+            })
+            if len(songs) % 1000 == 0:
+                print(f"Analyzed complete songs (Python): {len(songs)}")
+
+    print(f"Finished Python extraction: {len(songs)} usable songs from {source_rows} rows")
+    return source_rows, songs
+
+
 def main() -> None:
-    if len(sys.argv) < 2:
-        raise SystemExit("Usage: python train.py path/to/songs.csv")
-
-    csv_path = Path(sys.argv[1]).resolve()
     root = Path(__file__).resolve().parent
+    csv_path = Path(sys.argv[1]).resolve() if len(sys.argv) >= 2 else (root / "data/songs.csv")
+    if not csv_path.exists():
+        raise SystemExit(f"Dataset not found: {csv_path}\nUsage: python train.py data/songs.csv")
 
-    # Step 1: Extract Thai phonetic/rhyme/word features using dist/engine.js (zero train-serve skew)
-    with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as tmp:
-        jsonl_path = Path(tmp.name)
-
-    try:
-        subprocess.run(
-            ["node", "--max-old-space-size=4096", str(root / "extract_features.cjs"), str(csv_path), str(jsonl_path)],
-            cwd=str(root),
-            check=True,
-        )
-        songs: list[dict] = []
-        source_rows = 0
-        with jsonl_path.open("r", encoding="utf-8") as f:
-            for line in f:
-                obj = json.loads(line)
-                if obj.get("_meta"):
-                    source_rows = obj["sourceRows"]
-                else:
-                    obj["label"] = views_to_band(obj["views"])
-                    songs.append(obj)
-    finally:
-        if jsonl_path.exists():
-            jsonl_path.unlink()
+    # Step 1: Pure-Python Thai phonetic/rhyme/structural extraction
+    source_rows, songs = load_and_analyze_csv(csv_path, root)
 
     train_songs = [s for s in songs if not is_test_group(s["group"])]
     test_songs = [s for s in songs if is_test_group(s["group"])]
@@ -290,10 +316,10 @@ def main() -> None:
     probs_test, art = fit_and_predict_hybrid(train_songs, test_songs, y_train, views_train, ridge_alpha=best_alpha)
     y_pred = probs_test.argmax(axis=1)
 
-    # Also train words+struct-only ComplementNB baseline for fair comparison
+    # Words+struct-only ComplementNB baseline for fair comparison
     tr_uni = [build_doc_counters(s, include_rich=False) for s in train_songs]
     te_uni = [build_doc_counters(s, include_rich=False) for s in test_songs]
-    _, vmap_uni, idf_uni = fit_tfidf(tr_uni, include_rich=False)
+    _, vmap_uni, idf_uni = fit_tfidf(tr_uni)
     X_tr_uni = transform_tfidf(tr_uni, vmap_uni, idf_uni)
     X_te_uni = transform_tfidf(te_uni, vmap_uni, idf_uni)
     cnb_uni = ComplementNB(alpha=CNB_ALPHA, norm=False).fit(X_tr_uni, y_train)
@@ -344,9 +370,9 @@ def main() -> None:
         "matrix": mat.tolist(),
         "perClass": per_class,
         "classCounts": [int(x) for x in art["docs"]],
-        "trainer": "Python (scikit-learn Ridge + ComplementNB, SciPy, NumPy)",
+        "trainer": "Pure Python (PyThaiNLP + scikit-learn Ridge & ComplementNB + SciPy + NumPy)",
         "featureMode": "whole-song-v3: TF-IDF L2 words + bigrams + char 3-grams + filtered vowel/multi rhymes + 40 song-level structural/phonetic features (Ordinal Ridge-Gaussian + Complement NB hybrid)",
-        "method": "artist-group holdout; SHA-256 first byte <51; exact whitespace-normalized lyric deduplication; fixed view bands; entire songs; trained in Python (scikit-learn) with 5-fold GroupKFold CV on training set only",
+        "method": "artist-group holdout; SHA-256 first byte <51; exact whitespace-normalized lyric deduplication; fixed view bands; entire songs; trained in pure Python with 5-fold GroupKFold CV on training set only",
         "dictionary": {
             "source": "https://github.com/PyThaiNLP/pythainlp/blob/dev/pythainlp/corpus/syllables_th.txt",
             "sha256": hashlib.sha256(dict_bytes).hexdigest(),
@@ -355,13 +381,11 @@ def main() -> None:
         },
     }
 
-    # Build compact rhymePairs index for the web UI search box
     rhyme_freq: Counter = Counter()
     for s in train_songs:
         rhyme_freq.update(s["rhymes"])
     rhyme_pairs = [[f, int(n)] for f, n in rhyme_freq.most_common(25_000) if n >= 3]
 
-    # Export browser-ready dist/model.js
     cnb_w = art["cnb"].feature_log_prob_
     cnb_b = CNB_PRIOR_POW * np.log(art["priors"])
     model_obj = {

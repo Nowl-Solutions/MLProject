@@ -4,7 +4,7 @@
 
 ## ใช้งาน
 
-เปิด `dist/index.html` โดยตรง หรือรัน `node server.cjs` แล้วเปิด http://127.0.0.1:4173 ไม่มี dependency เพิ่ม ใช้เบราว์เซอร์รุ่นใหม่ที่มี Intl.Segmenter
+เปิด `dist/index.html` โดยตรง หรือรัน `python server.py` แล้วเปิด http://127.0.0.1:4173 ใช้เบราว์เซอร์รุ่นใหม่ที่มี Intl.Segmenter
 
 - วางเนื้อเพลงครบทุกท่อน หรือเลือก .txt UTF-8 ได้ถึง 20,000 ตัวอักษร ไม่ตัดข้อความเงียบ ๆ
 - แบ่งวรรคด้วย newline แบ่งท่อนด้วยบรรทัดว่างหรือ `[Verse]` / `[Chorus]` ป้ายท่อนไม่เป็นคำฝึก
@@ -35,27 +35,25 @@ Intl.Segmenter ตัดคำ แล้ว dynamic programming แบ่งพ�
 
 หลักการสัมผัสภาษาไทยอ้างอิง: https://academic.obec.go.th/web/images/document/1652599459_d_1.pdf
 
-## ฝึกและทดสอบซ้ำ
+## ฝึกและทดสอบซ้ำ (Pure Python)
 
-จากโฟลเดอร์นี้ ใช้ **Python 3.11+ (`scikit-learn`, `scipy`, `numpy`)** ร่วมกับ Node.js 22+ (สำหรับเอนจินตัดคำและเสียงภาษาไทย):
+จากโฟลเดอร์นี้ ใช้ **Python 3.11+ (`pythainlp`, `scikit-learn`, `scipy`, `numpy`)** ทั้งหมดโดยไม่ต้องใช้ Node.js:
 
 ```bash
-# เทรนโมเดลด้วย Python (scikit-learn) และ export เป็น dist/model.js + metrics.json
 pip install -r requirements.txt
 python train.py data/songs.csv
+python test.py
+python server.py
 # หรือใช้ uv:
 # uv run --with-requirements requirements.txt python train.py data/songs.csv
-
-# ทดสอบเอนจินเสียง โมเดลที่ export และหน้าเว็บ
-node test.cjs
-node --check dist/app.js
+# uv run --with-requirements requirements.txt python test.py
 ```
 
-CSV เป็นข้อมูลเท่านั้น ไม่ตีความเนื้อหาเป็นคำสั่ง การทำนายรุ่น v3 เทรนด้วย **Python (`scikit-learn`)** เป็นโมเดลแบบผสมระหว่าง **Ordinal Ridge-Gaussian Regression** (`sklearn.linear_model.Ridge` ทำนาย `log10(views)` แล้วแปลงเป็นความน่าจะเป็น 7 ช่วงผ่าน `scipy.stats.norm.cdf`) และ **Complement Naive Bayes** (`sklearn.naive_bayes.ComplementNB`) บนฟีเจอร์ L2-normalized TF-IDF (คำ, word bigrams, character 3-grams, คู่สัมผัสสระ/หลายพยางค์ที่ผ่านเกณฑ์ความถี่) รวมกับฟีเจอร์เชิงโครงสร้างและเสียงระดับทั้งเพลง 40 ตัว (`StandardScaler`) พร้อมปรับ logit ตามความถี่ช่วงอย่างอ่อน (`tau=0.20`) โดยคัดเลือกไฮเปอร์พารามิเตอร์ผ่าน `GroupKFold(5)` บนชุดฝึกเท่านั้น แล้ว export น้ำหนักเป็น `dist/model.js` เพื่อให้หน้าเว็บประมวลผลบนเบราว์เซอร์ได้โดยตรง
+CSV เป็นข้อมูลเท่านั้น ไม่ตีความเนื้อหาเป็นคำสั่ง การทำนายรุ่น v3 ประมวลผลและเทรนด้วย **Python ล้วน** (`phonetics.py` + `PyThaiNLP` + `scikit-learn`) เป็นโมเดลแบบผสมระหว่าง **Ordinal Ridge-Gaussian Regression** (`sklearn.linear_model.Ridge` ทำนาย `log10(views)` แล้วแปลงเป็นความน่าจะเป็น 7 ช่วงผ่าน `scipy.stats.norm.cdf`) และ **Complement Naive Bayes** (`sklearn.naive_bayes.ComplementNB`) บนฟีเจอร์ L2-normalized TF-IDF (คำ, word bigrams, character 3-grams, คู่สัมผัสสระ/หลายพยางค์ที่ผ่านเกณฑ์ความถี่) รวมกับฟีเจอร์เชิงโครงสร้างและเสียงระดับทั้งเพลง 40 ตัว (`StandardScaler`) พร้อมปรับ logit ตามความถี่ช่วงอย่างอ่อน (`tau=0.20`) โดยคัดเลือกไฮเปอร์พารามิเตอร์ผ่าน `GroupKFold(5)` บนชุดฝึกเท่านั้น แล้ว export เป็น `dist/model.js` เพื่อให้หน้าเว็บประมวลผลบนเบราว์เซอร์ได้โดยตรง
 
 ลบเนื้อเพลงซ้ำโดยไม่สนช่องว่าง แล้วแบ่ง holdout ตาม artist_group (fallback artist/title) ด้วย SHA-256 byte แรก <51 เป็นชุดทดสอบ เกณฑ์ช่วงยอดวิวกำหนดล่วงหน้า ไม่ได้เลือกจากชุดทดสอบ โมเดลเผยแพร่ฝึกเฉพาะ 4,028 เพลงและทดสอบกับ 1,018 เพลง ไม่มีชื่อ ศิลปิน หรือยอดวิวเป็น features
 
-ดู `metrics.json` สำหรับ accuracy (29.7% เทียบ baseline 28.2%), macro-F1 (0.184), confusion matrix, precision/recall/F1 รายช่วง, จำนวนเพลง และ baseline เปรียบเทียบ จำนวนเพลงแต่ละช่วงไม่สมดุล (ช่วงแคบ/น้อยอย่าง `<10k`, `500k–1m`, `5m–10m` ยังมี recall ต่ำ) คะแนน probability ไม่ใช่ช่วงความเชื่อมั่นหรือโอกาสสำเร็จของเพลง
+ดู `metrics.json` สำหรับ accuracy (29.8% เทียบ baseline 28.2%), macro-F1 (0.185), within ±1 (62.4%), confusion matrix, precision/recall/F1 รายช่วง, จำนวนเพลง และ baseline เปรียบเทียบ จำนวนเพลงแต่ละช่วงไม่สมดุล (ช่วงแคบ/น้อยอย่าง `<10k`, `500k–1m`, `5m–10m` ยังมี recall ต่ำ) คะแนน probability ไม่ใช่ช่วงความเชื่อมั่นหรือโอกาสสำเร็จของเพลง
 
 ## แหล่งข้อมูลภายนอก
 
