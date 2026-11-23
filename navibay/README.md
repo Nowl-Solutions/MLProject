@@ -42,9 +42,9 @@ Intl.Segmenter ตัดคำ แล้ว dynamic programming แบ่งพ�
 ```bash
 # เทรนโมเดลด้วย Python (scikit-learn) และ export เป็น dist/model.js + metrics.json
 pip install -r requirements.txt
-python train.py "C:/Users/marts/Downloads/songs.csv"
+python train.py data/songs.csv
 # หรือใช้ uv:
-# uv run --with-requirements requirements.txt python train.py "C:/Users/marts/Downloads/songs.csv"
+# uv run --with-requirements requirements.txt python train.py data/songs.csv
 
 # ทดสอบเอนจินเสียง โมเดลที่ export และหน้าเว็บ
 node test.cjs
