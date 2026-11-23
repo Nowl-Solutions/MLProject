@@ -1,54 +1,60 @@
 <!doctype html>
 <html lang="th">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="วิเคราะห์คู่สัมผัสทั้งเพลงและทายช่วงยอดวิว 7 ระดับด้วย Hybrid ML"><title>NaviBay • แผนที่สัมผัสทั้งเพลง</title><link rel="stylesheet" href="style.css?v=5.0">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="วิเคราะห์คู่สัมผัสทั้งเพลงและทายช่วงยอดวิว 7 ระดับด้วย Hybrid ML"><title>NaviBay • แผนที่สัมผัสทั้งเพลง</title><link rel="stylesheet" href="style.css?v=6.0">
 </head>
 <body>
 <header class="appbar">
   <div class="appbar-inner">
-    <a class="brand" href="./"><i class="brand-mark" aria-hidden="true"></i>NaviBay</a>
+    <a class="brand" href="./"><i class="brand-mark" aria-hidden="true"><b></b></i>NaviBay</a>
     <nav aria-label="เมนูหลัก">
-      <a href="#studio">วิเคราะห์เพลง</a>
-      <a href="#dictionary">ค้นคู่สัมผัส</a>
-      <a href="#evaluation">ผลทดสอบโมเดล</a>
-      <a href="#guide">คู่มือ</a>
+      <a href="#studio"><i aria-hidden="true" class="nav-icon mix"></i>วิเคราะห์เพลง</a>
+      <a href="#dictionary"><i aria-hidden="true" class="nav-icon book"></i>ค้นคู่สัมผัส</a>
+      <a href="#evaluation"><i aria-hidden="true" class="nav-icon bars-icon"></i>ผลทดสอบโมเดล</a>
+      <a href="#guide"><i aria-hidden="true" class="nav-icon help">?</i>คู่มือ</a>
     </nav>
+    <div class="sidebar-foot"><span aria-hidden="true">◌</span> ประมวลผลบนอุปกรณ์</div>
   </div>
 </header>
 <main>
   <div class="page-title" id="studio">
-    <h1>วิเคราะห์เนื้อเพลง</h1>
-    <p>สำรวจสัมผัสรายวรรคและประเมินช่วงยอดวิวจากเนื้อเพลงไทยทั้งเพลง</p>
+    <h1 lang="en">Lyric <em>Studio</em></h1>
+    <p>วิเคราะห์สัมผัสในเนื้อเพลงไทย และประเมินช่วงยอดวิวของทั้งเพลง</p>
   </div>
   <div class="workspace">
     <section class="panel editor">
       <div class="panel-head">
-        <h2><label for="lyrics">เนื้อเพลง</label></h2>
-        <button class="secondary" id="sample">ลองเพลงตัวอย่าง</button>
+        <h2><label for="lyrics">ต้นฉบับเนื้อเพลง</label></h2>
+        <button class="secondary" id="sample"><span aria-hidden="true">♫</span> ลองเพลงตัวอย่าง</button>
       </div>
       <div class="writing-area">
-        <p class="muted" id="lyrics-help">ขึ้นบรรทัดใหม่ทุกวรรค แบ่งท่อนด้วยบรรทัดว่างหรือ [Verse] / [Chorus]</p>
-        <textarea id="lyrics" aria-describedby="lyrics-help counter" maxlength="20000" placeholder="วางเนื้อเพลงที่นี่…"></textarea>
+        <div class="manuscript">
+          <textarea id="lyrics" aria-describedby="lyrics-help counter" maxlength="20000" placeholder="วางเนื้อเพลงของคุณที่นี่…"></textarea>
+        </div>
         <div class="editor-foot">
           <span id="counter">0 / 20,000 ตัวอักษร</span>
           <button class="text-btn" id="clear">ล้างข้อความ</button>
         </div>
-        <div class="file-import">
-          <label for="text-file">นำเข้าไฟล์ .txt (UTF-8)</label>
-          <input id="text-file" type="file" accept=".txt,text/plain">
-        </div>
+        <p class="muted" id="lyrics-help">ขึ้นบรรทัดใหม่ทุกวรรค ใช้บรรทัดว่างหรือ [Chorus] เพื่อแบ่งท่อน</p>
       </div>
       <div class="run-area">
+        <div class="file-import">
+          <label for="text-file"><span aria-hidden="true">＋</span> นำเข้าไฟล์ .txt</label>
+          <input id="text-file" type="file" accept=".txt,text/plain" aria-label="นำเข้าไฟล์ .txt (UTF-8)">
+        </div>
         <button class="primary" id="predict" disabled>กำลังโหลดโมเดล…</button>
         <p id="error" role="alert"></p>
-        <p class="privacy">ประมวลผลในเบราว์เซอร์ของคุณ</p>
+
       </div>
     </section>
     <section class="panel result" aria-live="polite">
       <div class="panel-head"><h2>ผลประเมินยอดวิว</h2><span>7 ช่วงยอดวิว</span></div>
       <div id="empty">
-        <div class="signal" aria-hidden="true"></div>
+        <div class="record-deck" aria-hidden="true">
+          <div class="platter"><div class="record-label"><i></i></div></div>
+          <div class="pivot"></div><div class="tonearm"></div><div class="stylus"></div>
+        </div>
         <h3>รอเนื้อเพลงสำหรับวิเคราะห์</h3>
-        <p>ใส่เนื้อเพลงแล้วกดวิเคราะห์ เพื่อดูช่วงยอดวิว<br>และคะแนนของแต่ละช่วงที่นี่</p>
+        <p>ผลทำนายและคะแนนทั้ง 7 ช่วงจะแสดงที่นี่</p>
       </div>
       <div id="output" hidden><p class="muted">ช่วงยอดวิวที่โมเดลเลือก</p><h2 id="level"></h2><p id="range"></p><div id="bars"></div><p class="note">คะแนนสัมพัทธ์ของโมเดล ไม่ผ่านการปรับเทียบ จึงไม่ใช่โอกาสสำเร็จจริง ไม่ใช่ช่วงความเชื่อมั่น และไม่ได้ระบุยอดวิวในอนาคต</p><p id="coverage" class="muted"></p></div>
 </section></div>
