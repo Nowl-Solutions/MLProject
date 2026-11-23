@@ -11,6 +11,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import sys
 import math
 from collections import Counter
 from pathlib import Path
@@ -18,6 +19,11 @@ from pathlib import Path
 from scipy.stats import norm
 
 import phonetics as P
+
+# Windows consoles default to a legacy code page; force UTF-8 so Thai prints correctly.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parent
 

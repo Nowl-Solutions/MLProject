@@ -36,6 +36,11 @@ from sklearn.preprocessing import StandardScaler
 
 import phonetics as P
 
+# Windows consoles default to a legacy code page; force UTF-8 so Thai prints correctly.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 csv.field_size_limit(min(sys.maxsize, 2**31 - 1))
 
 CUTS = [10_000, 100_000, 500_000, 1_000_000, 5_000_000, 10_000_000]
