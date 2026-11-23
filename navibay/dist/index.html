@@ -1,24 +1,58 @@
 <!doctype html>
 <html lang="th">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="วิเคราะห์คู่สัมผัสทั้งเพลงและทายช่วงยอดวิว 7 ระดับด้วย Hybrid ML"><title>NaviBay • แผนที่สัมผัสทั้งเพลง</title><link rel="stylesheet" href="style.css?v=4.0">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="วิเคราะห์คู่สัมผัสทั้งเพลงและทายช่วงยอดวิว 7 ระดับด้วย Hybrid ML"><title>NaviBay • แผนที่สัมผัสทั้งเพลง</title><link rel="stylesheet" href="style.css?v=5.0">
 </head>
 <body>
-<header class="masthead">
-  <a class="brand" href="./"><span class="brand-name">NaviBay<span class="brand-dot">.</span></span><span class="brand-caption">LYRICS LAB</span></a>
-  <span class="edition">ทั้งเพลง <span aria-hidden="true">/</span> 7 ช่วงยอดวิว</span>
+<header class="appbar">
+  <div class="appbar-inner">
+    <a class="brand" href="./"><i class="brand-mark" aria-hidden="true"></i>NaviBay</a>
+    <nav aria-label="เมนูหลัก">
+      <a href="#studio">วิเคราะห์เพลง</a>
+      <a href="#dictionary">ค้นคู่สัมผัส</a>
+      <a href="#evaluation">ผลทดสอบโมเดล</a>
+      <a href="#guide">คู่มือ</a>
+    </nav>
+  </div>
 </header>
 <main>
-<section class="intro"><div><p class="eyebrow">ทุกคำมีคู่ ทุกเพลงมีรูปแบบ</p><h1>มองเห็นสัมผัส<br>ตลอดทั้งเพลง<span>.</span></h1><p class="lead">คลิกคำเพื่อดูว่าคู่กับตรงไหน อ่านรูปแบบท้ายวรรค<br>แล้วประเมินช่วงยอดวิวจากเนื้อเพลงทั้งหมด</p></div><div class="record" aria-hidden="true">
-  <div class="disc"><div>nb<small>LYRICS LAB</small></div></div>
-  <span>คำ · เสียง · ความเชื่อมโยง</span>
-</div>
-</section>
-<div class="workspace">
-<section class="panel editor"><p class="eyebrow">THE LYRICS</p><div class="heading"><h2>เนื้อเพลงทั้งเพลง</h2><button class="text-btn" id="sample">ลองเพลงตัวอย่าง</button></div><p class="muted" id="lyrics-help">ขึ้นบรรทัดใหม่ทุกวรรค เว้นบรรทัดแบ่งท่อน หรือใส่ [Verse] / [Chorus] ระบบใช้ทุกวรรคที่กรอก</p><label for="lyrics">วางเนื้อเพลงของคุณ</label><textarea aria-describedby="lyrics-help counter" id="lyrics" maxlength="20000" placeholder="[Verse]&#10;...&#10;&#10;[Chorus]&#10;..."></textarea><div class="editor-foot"><span id="counter">0 / 20,000 ตัวอักษร</span><button class="text-btn" id="clear">ล้างข้อความ</button></div><div class="file-import"><label class="file-label" for="text-file">หรือเลือกไฟล์ .txt (UTF-8)</label><input id="text-file" type="file" accept=".txt,text/plain"></div><button class="primary" id="predict" disabled>กำลังโหลดโมเดล…</button><p id="error" role="alert"></p><p class="privacy">วิเคราะห์บนเบราว์เซอร์ • เนื้อเพลงไม่ถูกส่งไปยังเซิร์ฟเวอร์</p>
-</section>
-<section class="panel result" aria-live="polite"><p class="eyebrow">WHOLE-SONG PREDICTION</p><div id="empty"><div class="sound" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><h2>หนึ่งเพลง หนึ่งผลประเมิน</h2><p>โมเดลใช้คำ คู่สัมผัส และโครงสร้างทั้งเพลง<br>เพื่อจัดกลุ่มยอดวิวสะสม 7 ช่วง</p></div><div id="output" hidden><p class="muted">ช่วงยอดวิวที่โมเดลเลือก</p><h2 id="level"></h2><p id="range"></p><div id="bars"></div><p class="note">คะแนนสัมพัทธ์ของ Naive Bayes ไม่ผ่านการปรับเทียบ จึงไม่ใช่โอกาสสำเร็จจริง ไม่ใช่ช่วงความเชื่อมั่น และไม่ได้ระบุยอดวิวในอนาคต</p><p id="coverage" class="muted"></p></div>
+  <div class="page-title" id="studio">
+    <h1>วิเคราะห์เนื้อเพลง</h1>
+    <p>สำรวจสัมผัสรายวรรคและประเมินช่วงยอดวิวจากเนื้อเพลงไทยทั้งเพลง</p>
+  </div>
+  <div class="workspace">
+    <section class="panel editor">
+      <div class="panel-head">
+        <h2><label for="lyrics">เนื้อเพลง</label></h2>
+        <button class="secondary" id="sample">ลองเพลงตัวอย่าง</button>
+      </div>
+      <div class="writing-area">
+        <p class="muted" id="lyrics-help">ขึ้นบรรทัดใหม่ทุกวรรค แบ่งท่อนด้วยบรรทัดว่างหรือ [Verse] / [Chorus]</p>
+        <textarea id="lyrics" aria-describedby="lyrics-help counter" maxlength="20000" placeholder="วางเนื้อเพลงที่นี่…"></textarea>
+        <div class="editor-foot">
+          <span id="counter">0 / 20,000 ตัวอักษร</span>
+          <button class="text-btn" id="clear">ล้างข้อความ</button>
+        </div>
+        <div class="file-import">
+          <label for="text-file">นำเข้าไฟล์ .txt (UTF-8)</label>
+          <input id="text-file" type="file" accept=".txt,text/plain">
+        </div>
+      </div>
+      <div class="run-area">
+        <button class="primary" id="predict" disabled>กำลังโหลดโมเดล…</button>
+        <p id="error" role="alert"></p>
+        <p class="privacy">ประมวลผลในเบราว์เซอร์ของคุณ</p>
+      </div>
+    </section>
+    <section class="panel result" aria-live="polite">
+      <div class="panel-head"><h2>ผลประเมินยอดวิว</h2><span>7 ช่วงยอดวิว</span></div>
+      <div id="empty">
+        <div class="signal" aria-hidden="true"></div>
+        <h3>รอเนื้อเพลงสำหรับวิเคราะห์</h3>
+        <p>ใส่เนื้อเพลงแล้วกดวิเคราะห์ เพื่อดูช่วงยอดวิว<br>และคะแนนของแต่ละช่วงที่นี่</p>
+      </div>
+      <div id="output" hidden><p class="muted">ช่วงยอดวิวที่โมเดลเลือก</p><h2 id="level"></h2><p id="range"></p><div id="bars"></div><p class="note">คะแนนสัมพัทธ์ของโมเดล ไม่ผ่านการปรับเทียบ จึงไม่ใช่โอกาสสำเร็จจริง ไม่ใช่ช่วงความเชื่อมั่น และไม่ได้ระบุยอดวิวในอนาคต</p><p id="coverage" class="muted"></p></div>
 </section></div>
-<section id="analysis" hidden><div class="section-heading"><div><p class="eyebrow">RHYME MAP</p><h2>ตรงนี้ สัมผัสกับตรงไหน?</h2></div><button id="export" class="secondary">ดาวน์โหลดผล JSON</button></div><p id="stats" class="muted"></p><div id="summary" class="summary-grid"></div><div class="panel map-panel analysis"><div class="filter-row"><label for="type-filter">ประเภทเสียง<select id="type-filter"><option value="all">ทุกประเภท</option></select></label><label for="scope-filter">ตำแหน่ง<select id="scope-filter"><option value="all">ทุกตำแหน่ง</option><option value="inner">ภายในวรรค</option><option value="outer">ข้ามวรรคในท่อน</option><option value="section">ข้ามท่อน</option><option value="end">ท้ายวรรคกับท้ายวรรค</option></select></label><button id="deselect" class="text-btn">แสดงทุกคู่</button></div><p class="note">คลิกพยางค์เพื่อเน้นคู่ที่เกี่ยวข้อง คลิกแถวคู่สัมผัสเพื่อเน้นทั้งสองตำแหน่ง สีเทาประคือพยางค์ที่ยังอ่านเสียงไม่ได้</p><div class="map-grid"><div id="song-map" class="song-map" tabindex="0" aria-label="เนื้อเพลงพร้อมตำแหน่งสัมผัส"></div>
+<section id="analysis" hidden><div class="section-heading"><div><h2>แผนที่สัมผัส</h2></div><button id="export" class="secondary">ดาวน์โหลดผล JSON</button></div><p id="stats" class="muted"></p><div id="summary" class="summary-grid"></div><div class="panel map-panel analysis"><div class="filter-row"><label for="type-filter">ประเภทเสียง<select id="type-filter"><option value="all">ทุกประเภท</option></select></label><label for="scope-filter">ตำแหน่ง<select id="scope-filter"><option value="all">ทุกตำแหน่ง</option><option value="inner">ภายในวรรค</option><option value="outer">ข้ามวรรคในท่อน</option><option value="section">ข้ามท่อน</option><option value="end">ท้ายวรรคกับท้ายวรรค</option></select></label><button id="deselect" class="text-btn">แสดงทุกคู่</button></div><p class="note">คลิกพยางค์เพื่อเน้นคู่ที่เกี่ยวข้อง คลิกแถวคู่สัมผัสเพื่อเน้นทั้งสองตำแหน่ง สีเทาประคือพยางค์ที่ยังอ่านเสียงไม่ได้</p><div class="map-grid"><div id="song-map" class="song-map" tabindex="0" aria-label="เนื้อเพลงพร้อมตำแหน่งสัมผัส"></div>
 <aside class="pair-panel" tabindex="0" aria-label="รายการคู่สัมผัส"><h3 id="selection-title">คู่ที่ตรวจพบ</h3><p id="pair-total" class="muted"></p><div id="pair-list"></div><button id="more-pairs" class="secondary" hidden>แสดงเพิ่ม 60 คู่</button>
 </aside></div></div>
 <div class="viz-grid">
@@ -29,11 +63,7 @@
 <section class="panel analysis scheme-panel"><h2>รูปแบบสัมผัสท้ายวรรค</h2><p class="note">ตัวอักษรเหมือนกันหมายถึงกลุ่มเสียงท้ายเดียวกัน (รวมคำซ้ำ) เริ่ม A ใหม่ในแต่ละท่อน ไม่ใช่ข้อบังคับของการแต่งเพลง เครื่องหมาย ? คือยังอ่านเสียงท้ายไม่ได้</p><div id="schemes"></div>
 </section>
 </section>
-<section class="panel analysis lookup-panel"><div class="heading"><h2>คำนี้ มักสัมผัสกับอะไร?</h2><span class="badge">สถิติจากชุดฝึก</span></div><label for="rhyme-search">ค้นหาพยางค์ เช่น ใจ รัก ฝัน</label><input id="rhyme-search" class="search" value="ใจ"><div id="lookup" class="chips"></div><p class="note">ความถี่เป็นจำนวนครั้งรวมท่อนซ้ำ ไม่ใช่จำนวนเพลง แสดง 30 คู่ที่พบบ่อยที่สุดในชุดฝึก</p>
-</section>
-<section class="method"><div><p class="eyebrow">COMPOSITION TOOLKIT</p><h2>เทคนิคที่ตรวจได้<br>และขอบเขตของมัน</h2><p>สัมผัสคือเรื่องของเสียง ส่วนตำแหน่งบอกว่าคำเหล่านั้นเชื่อมกันที่ใด ระบบแยกสองมิตินี้ให้ตรวจดูได้</p><p>พจนานุกรมช่วยแบ่งพยางค์ แล้วกฎรูปเขียนประมาณเสียงสระ ตัวสะกด และพยัญชนะต้น พยางค์ที่อ่านไม่ได้จะไม่ถูกฝืนจับสัมผัส</p></div><div id="techniques" class="techniques"></div>
-</section>
-<section class="panel analysis evaluation-panel"><div class="heading"><h2>วัดผลกับเพลงที่กันไว้ทดสอบ</h2><span class="muted">7 ช่วงยอดวิว</span></div><div id="metrics" class="metrics"></div><p id="comparison" class="note"></p>
+<section id="evaluation" class="panel analysis evaluation-panel"><div class="heading"><h2>ผลทดสอบโมเดล</h2><span class="muted">7 ช่วงยอดวิว</span></div><div id="metrics" class="metrics"></div><p id="comparison" class="note"></p>
 <details><summary>ดูผลแต่ละช่วงและวิธีแบ่งข้อมูล</summary><p id="data-details" class="muted"></p><div class="table-scroll" tabindex="0" role="region" aria-label="ผลประเมินรายช่วงยอดวิว">
 <table>
 <thead><tr><th>ช่วงยอดวิว</th><th>เพลงฝึก</th><th>เพลงทดสอบ</th><th>Precision</th><th>Recall</th><th>F1</th></tr>
@@ -43,9 +73,14 @@
 </table></div><p class="note">แบ่งตามกลุ่มศิลปินประมาณ 20% ลบเนื้อเพลงซ้ำก่อนแบ่ง ใช้เนื้อเพลงครบทุกเพลง กำหนดช่วงยอดวิวล่วงหน้า ไม่มีชื่อเพลง ศิลปิน หรือยอดวิวเป็นตัวแปรนำเข้า โมเดลที่หน้านี้ใช้ไม่ได้ฝึกบนชุดทดสอบ</p><p class="note">ยอดวิวใน songs.csv เป็นยอดสะสม ณ วันที่เก็บ ไม่ได้ปรับตามอายุเพลง การโปรโมต หรือฐานผู้ฟัง ความแม่นยำข้ามเวอร์ชันที่จำนวนช่วงต่างกันเปรียบเทียบกันตรง ๆ ไม่ได้</p>
 </details>
 </section>
+<section id="dictionary" class="panel analysis lookup-panel"><div class="heading"><h2>ค้นคู่สัมผัส</h2><span class="badge">สถิติจากชุดฝึก</span></div><label for="rhyme-search">ค้นหาพยางค์ เช่น ใจ รัก ฝัน</label><input id="rhyme-search" class="search" value="ใจ"><div id="lookup" class="chips"></div><p class="note">ความถี่เป็นจำนวนครั้งรวมท่อนซ้ำ ไม่ใช่จำนวนเพลง แสดง 30 คู่ที่พบบ่อยที่สุดในชุดฝึก</p>
+</section>
+<section id="guide" class="method"><div><h2>คู่มือวิเคราะห์สัมผัส</h2><p>สัมผัสคือเรื่องของเสียง ส่วนตำแหน่งบอกว่าคำเหล่านั้นเชื่อมกันที่ใด ระบบแยกสองมิตินี้ให้ตรวจดูได้</p><p>พจนานุกรมช่วยแบ่งพยางค์ แล้วกฎรูปเขียนประมาณเสียงสระ ตัวสะกด และพยัญชนะต้น พยางค์ที่อ่านไม่ได้จะไม่ถูกฝืนจับสัมผัส</p></div><div id="techniques" class="techniques"></div>
+</section>
+
 <section class="sources"><p>หลักการสัมผัส: <a href="https://academic.obec.go.th/web/images/document/1652599459_d_1.pdf" target="_blank" rel="noreferrer">ใบความรู้ สพฐ.</a> · พจนานุกรมพยางค์: <a href="https://github.com/PyThaiNLP/pythainlp" target="_blank" rel="noreferrer">PyThaiNLP</a> (<a href="vendor/PyThaiNLP-LICENSE.txt">Apache-2.0</a>)</p><p>รองรับคำยืมภาษาอังกฤษ/บาลี–สันสกฤต อักษรนำซับซ้อน ควบกล้ำไม่แท้ ร หัน การันต์ซ้อน และคำภาษาถิ่นที่พบบ่อย (อีสาน/เหนือ/ใต้) แต่ยังไม่ตรวจทำนอง การลงเสียงวรรณยุกต์กับโน้ต จังหวะร้องจริง การเล่นความหมาย/คำพ้อง หรือคำเฉพาะถิ่นที่อยู่นอกกฎและพจนานุกรม</p>
 </section>
-<footer>NaviBay <span>อ่านทั้งเพลง เห็นทุกวรรค</span>
+<footer>NaviBay
 </footer>
 </main>
 <script src="syllables.js?v=3.2">
