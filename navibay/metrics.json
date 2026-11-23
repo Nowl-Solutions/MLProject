@@ -20,17 +20,19 @@
     "5,000,000–9,999,999",
     "10,000,000 ขึ้นไป"
   ],
-  "accuracy": 0.3055009823182711,
+  "accuracy": 0.2966601178781925,
   "unigramAccuracy": 0.27603143418467585,
   "baseline": 0.2819253438113949,
-  "macroF1": 0.18779977786188967,
-  "withinOne": 0.6168958742632613,
-  "topTwo": 0.5363457760314342,
+  "macroF1": 0.1844342136515047,
+  "withinOne": 0.6139489194499018,
+  "topTwo": 0.5392927308447937,
+  "cvAccuracy": 0.29071499503475673,
+  "cvMacroF1": 0.156985316985325,
   "matrix": [
     [
       0,
-      16,
-      12,
+      15,
+      13,
       0,
       2,
       0,
@@ -38,17 +40,17 @@
     ],
     [
       0,
-      56,
-      127,
+      59,
+      125,
       0,
-      34,
+      33,
       0,
       1
     ],
     [
       0,
-      56,
-      166,
+      66,
+      156,
       0,
       59,
       0,
@@ -56,37 +58,37 @@
     ],
     [
       0,
-      24,
-      62,
+      26,
+      63,
       0,
-      36,
+      33,
       0,
       5
     ],
     [
       0,
-      28,
-      103,
+      29,
+      104,
       0,
-      59,
+      57,
       0,
       15
     ],
     [
       0,
-      8,
-      23,
+      9,
+      21,
       0,
       12,
       0,
-      8
+      9
     ],
     [
       0,
-      8,
-      39,
+      10,
+      36,
       0,
-      22,
+      23,
       0,
       30
     ]
@@ -96,57 +98,57 @@
       "label": "ต่ำกว่า 10,000",
       "train": 118,
       "test": 31,
-      "precision": 0,
-      "recall": 0,
-      "f1": 0
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
     },
     {
       "label": "10,000–99,999",
       "train": 923,
       "test": 218,
-      "precision": 0.2857142857142857,
-      "recall": 0.25688073394495414,
-      "f1": 0.27053140096618356
+      "precision": 0.2757009345794392,
+      "recall": 0.2706422018348624,
+      "f1": 0.27314814814814814
     },
     {
       "label": "100,000–499,999",
       "train": 1130,
       "test": 287,
-      "precision": 0.31203007518796994,
-      "recall": 0.578397212543554,
-      "f1": 0.4053724053724054
+      "precision": 0.30115830115830117,
+      "recall": 0.5435540069686411,
+      "f1": 0.3875776397515528
     },
     {
       "label": "500,000–999,999",
       "train": 481,
       "test": 127,
-      "precision": 0,
-      "recall": 0,
-      "f1": 0
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
     },
     {
       "label": "1,000,000–4,999,999",
       "train": 811,
       "test": 205,
-      "precision": 0.26339285714285715,
-      "recall": 0.28780487804878047,
-      "f1": 0.27505827505827507
+      "precision": 0.2602739726027397,
+      "recall": 0.2780487804878049,
+      "f1": 0.2688679245283019
     },
     {
       "label": "5,000,000–9,999,999",
       "train": 201,
       "test": 51,
-      "precision": 0,
-      "recall": 0,
-      "f1": 0
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
     },
     {
       "label": "10,000,000 ขึ้นไป",
       "train": 364,
       "test": 99,
-      "precision": 0.45454545454545453,
+      "precision": 0.44776119402985076,
       "recall": 0.30303030303030304,
-      "f1": 0.36363636363636365
+      "f1": 0.3614457831325301
     }
   ],
   "classCounts": [
@@ -158,8 +160,9 @@
     201,
     364
   ],
+  "trainer": "Python (scikit-learn Ridge + ComplementNB, SciPy, NumPy)",
   "featureMode": "whole-song-v3: TF-IDF L2 words + bigrams + char 3-grams + filtered vowel/multi rhymes + 40 song-level structural/phonetic features (Ordinal Ridge-Gaussian + Complement NB hybrid)",
-  "method": "artist-group holdout; SHA-256 first byte <51; exact whitespace-normalized lyric deduplication; fixed view bands; entire songs; hyperparameters selected via 5-fold artist-group CV on training set only",
+  "method": "artist-group holdout; SHA-256 first byte <51; exact whitespace-normalized lyric deduplication; fixed view bands; entire songs; trained in Python (scikit-learn) with 5-fold GroupKFold CV on training set only",
   "dictionary": {
     "source": "https://github.com/PyThaiNLP/pythainlp/blob/dev/pythainlp/corpus/syllables_th.txt",
     "sha256": "583db4f1e1244619f4963144b12c610618e44b64b8b7fd04daf753bf9eead412",

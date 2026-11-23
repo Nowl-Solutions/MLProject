@@ -37,19 +37,25 @@ Intl.Segmenter ตัดคำ แล้ว dynamic programming แบ่งพ�
 
 ## ฝึกและทดสอบซ้ำ
 
-จากโฟลเดอร์นี้ ใช้ Node.js 22+:
+จากโฟลเดอร์นี้ ใช้ **Python 3.11+ (`scikit-learn`, `scipy`, `numpy`)** ร่วมกับ Node.js 22+ (สำหรับเอนจินตัดคำและเสียงภาษาไทย):
 
-```
-node --max-old-space-size=4096 train.cjs "C:/Users/marts/Downloads/songs.csv"
+```bash
+# เทรนโมเดลด้วย Python (scikit-learn) และ export เป็น dist/model.js + metrics.json
+pip install -r requirements.txt
+python train.py "C:/Users/marts/Downloads/songs.csv"
+# หรือใช้ uv:
+# uv run --with-requirements requirements.txt python train.py "C:/Users/marts/Downloads/songs.csv"
+
+# ทดสอบเอนจินเสียง โมเดลที่ export และหน้าเว็บ
 node test.cjs
 node --check dist/app.js
 ```
 
-CSV เป็นข้อมูลเท่านั้น ไม่ตีความเนื้อหาเป็นคำสั่ง การทำนายรุ่น v3 ใช้โมเดลแบบผสมระหว่าง **Ordinal Ridge-Gaussian Regression** (ทำนาย `log10(views)` แล้วแปลงเป็นความน่าจะเป็น 7 ช่วงผ่าน Gaussian CDF) และ **Complement Naive Bayes** บนฟีเจอร์ L2-normalized TF-IDF (คำ, word bigrams, character 3-grams, คู่สัมผัสสระ/หลายพยางค์ที่ผ่านเกณฑ์ความถี่) รวมกับฟีเจอร์เชิงโครงสร้างและเสียงระดับทั้งเพลง 40 ตัว พร้อมปรับ logit ตามความถี่ช่วงอย่างอ่อน (`tau=0.20`) โดยคัดเลือกไฮเปอร์พารามิเตอร์ทั้งหมดผ่าน 5-fold Artist-Group CV บนชุดฝึกเท่านั้น
+CSV เป็นข้อมูลเท่านั้น ไม่ตีความเนื้อหาเป็นคำสั่ง การทำนายรุ่น v3 เทรนด้วย **Python (`scikit-learn`)** เป็นโมเดลแบบผสมระหว่าง **Ordinal Ridge-Gaussian Regression** (`sklearn.linear_model.Ridge` ทำนาย `log10(views)` แล้วแปลงเป็นความน่าจะเป็น 7 ช่วงผ่าน `scipy.stats.norm.cdf`) และ **Complement Naive Bayes** (`sklearn.naive_bayes.ComplementNB`) บนฟีเจอร์ L2-normalized TF-IDF (คำ, word bigrams, character 3-grams, คู่สัมผัสสระ/หลายพยางค์ที่ผ่านเกณฑ์ความถี่) รวมกับฟีเจอร์เชิงโครงสร้างและเสียงระดับทั้งเพลง 40 ตัว (`StandardScaler`) พร้อมปรับ logit ตามความถี่ช่วงอย่างอ่อน (`tau=0.20`) โดยคัดเลือกไฮเปอร์พารามิเตอร์ผ่าน `GroupKFold(5)` บนชุดฝึกเท่านั้น แล้ว export น้ำหนักเป็น `dist/model.js` เพื่อให้หน้าเว็บประมวลผลบนเบราว์เซอร์ได้โดยตรง
 
 ลบเนื้อเพลงซ้ำโดยไม่สนช่องว่าง แล้วแบ่ง holdout ตาม artist_group (fallback artist/title) ด้วย SHA-256 byte แรก <51 เป็นชุดทดสอบ เกณฑ์ช่วงยอดวิวกำหนดล่วงหน้า ไม่ได้เลือกจากชุดทดสอบ โมเดลเผยแพร่ฝึกเฉพาะ 4,028 เพลงและทดสอบกับ 1,018 เพลง ไม่มีชื่อ ศิลปิน หรือยอดวิวเป็น features
 
-ดู `metrics.json` สำหรับ accuracy (30.6% เทียบ baseline 28.2%), macro-F1 (0.188), confusion matrix, precision/recall/F1 รายช่วง, จำนวนเพลง และ baseline เปรียบเทียบ จำนวนเพลงแต่ละช่วงไม่สมดุล (ช่วงแคบ/น้อยอย่าง `<10k`, `500k–1m`, `5m–10m` ยังมี recall ต่ำ) คะแนน probability ไม่ใช่ช่วงความเชื่อมั่นหรือโอกาสสำเร็จของเพลง
+ดู `metrics.json` สำหรับ accuracy (29.7% เทียบ baseline 28.2%), macro-F1 (0.184), confusion matrix, precision/recall/F1 รายช่วง, จำนวนเพลง และ baseline เปรียบเทียบ จำนวนเพลงแต่ละช่วงไม่สมดุล (ช่วงแคบ/น้อยอย่าง `<10k`, `500k–1m`, `5m–10m` ยังมี recall ต่ำ) คะแนน probability ไม่ใช่ช่วงความเชื่อมั่นหรือโอกาสสำเร็จของเพลง
 
 ## แหล่งข้อมูลภายนอก
 
