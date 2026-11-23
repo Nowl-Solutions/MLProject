@@ -1,0 +1,169 @@
+{
+  "sourceRows": 5054,
+  "usable": 5046,
+  "train": 4028,
+  "test": 1018,
+  "cuts": [
+    10000,
+    100000,
+    500000,
+    1000000,
+    5000000,
+    10000000
+  ],
+  "labels": [
+    "ต่ำกว่า 10,000",
+    "10,000–99,999",
+    "100,000–499,999",
+    "500,000–999,999",
+    "1,000,000–4,999,999",
+    "5,000,000–9,999,999",
+    "10,000,000 ขึ้นไป"
+  ],
+  "accuracy": 0.3055009823182711,
+  "unigramAccuracy": 0.27603143418467585,
+  "baseline": 0.2819253438113949,
+  "macroF1": 0.18779977786188967,
+  "withinOne": 0.6168958742632613,
+  "topTwo": 0.5363457760314342,
+  "matrix": [
+    [
+      0,
+      16,
+      12,
+      0,
+      2,
+      0,
+      1
+    ],
+    [
+      0,
+      56,
+      127,
+      0,
+      34,
+      0,
+      1
+    ],
+    [
+      0,
+      56,
+      166,
+      0,
+      59,
+      0,
+      6
+    ],
+    [
+      0,
+      24,
+      62,
+      0,
+      36,
+      0,
+      5
+    ],
+    [
+      0,
+      28,
+      103,
+      0,
+      59,
+      0,
+      15
+    ],
+    [
+      0,
+      8,
+      23,
+      0,
+      12,
+      0,
+      8
+    ],
+    [
+      0,
+      8,
+      39,
+      0,
+      22,
+      0,
+      30
+    ]
+  ],
+  "perClass": [
+    {
+      "label": "ต่ำกว่า 10,000",
+      "train": 118,
+      "test": 31,
+      "precision": 0,
+      "recall": 0,
+      "f1": 0
+    },
+    {
+      "label": "10,000–99,999",
+      "train": 923,
+      "test": 218,
+      "precision": 0.2857142857142857,
+      "recall": 0.25688073394495414,
+      "f1": 0.27053140096618356
+    },
+    {
+      "label": "100,000–499,999",
+      "train": 1130,
+      "test": 287,
+      "precision": 0.31203007518796994,
+      "recall": 0.578397212543554,
+      "f1": 0.4053724053724054
+    },
+    {
+      "label": "500,000–999,999",
+      "train": 481,
+      "test": 127,
+      "precision": 0,
+      "recall": 0,
+      "f1": 0
+    },
+    {
+      "label": "1,000,000–4,999,999",
+      "train": 811,
+      "test": 205,
+      "precision": 0.26339285714285715,
+      "recall": 0.28780487804878047,
+      "f1": 0.27505827505827507
+    },
+    {
+      "label": "5,000,000–9,999,999",
+      "train": 201,
+      "test": 51,
+      "precision": 0,
+      "recall": 0,
+      "f1": 0
+    },
+    {
+      "label": "10,000,000 ขึ้นไป",
+      "train": 364,
+      "test": 99,
+      "precision": 0.45454545454545453,
+      "recall": 0.30303030303030304,
+      "f1": 0.36363636363636365
+    }
+  ],
+  "classCounts": [
+    118,
+    923,
+    1130,
+    481,
+    811,
+    201,
+    364
+  ],
+  "featureMode": "whole-song-v3: TF-IDF L2 words + bigrams + char 3-grams + filtered vowel/multi rhymes + 40 song-level structural/phonetic features (Ordinal Ridge-Gaussian + Complement NB hybrid)",
+  "method": "artist-group holdout; SHA-256 first byte <51; exact whitespace-normalized lyric deduplication; fixed view bands; entire songs; hyperparameters selected via 5-fold artist-group CV on training set only",
+  "dictionary": {
+    "source": "https://github.com/PyThaiNLP/pythainlp/blob/dev/pythainlp/corpus/syllables_th.txt",
+    "sha256": "583db4f1e1244619f4963144b12c610618e44b64b8b7fd04daf753bf9eead412",
+    "license": "Apache-2.0",
+    "downloaded": "2026-11-23"
+  }
+}
